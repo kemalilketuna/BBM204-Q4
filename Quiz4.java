@@ -63,7 +63,7 @@ public class Quiz4 {
         int n = Integer.parseInt(line.trim());
         while (n-- > 0 && (line = reader.readLine()) != null){
             String[] parts = line.split("\t");
-            root.insert(parts[1], Long.parseLong(parts[0]));
+            root.insert(parts[1].toLowerCase(), Long.parseLong(parts[0]));
         }
         reader.close();
     }
