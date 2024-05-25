@@ -11,11 +11,14 @@ class TrieNode {
         children = new HashMap<>();
         isEndOfWord = false;
         this.c = c;
+        val = 0;
     }
 
     TrieNode(){
         children = new HashMap<>();
         isEndOfWord = false;
+        c = '\0';
+        val = 0;
     }
 
     public void insert(String word, long val) {
@@ -34,17 +37,17 @@ class TrieNode {
     }
 }
 
-class Entry implements Comparable<Entry> {
+class Item implements Comparable<Item> {
     long priority;
     String name;
 
-    public Entry(long priority, String name) {
+    public Item(long priority, String name) {
         this.priority = priority;
         this.name = name;
     }
 
     @Override
-    public int compareTo(Entry other) {
+    public int compareTo(Item other) {
         int res = -Long.compare(priority, other.priority);
         if (res == 0) {
             res = name.compareTo(other.name);
@@ -82,12 +85,13 @@ public class Quiz4 {
         reader.close();
     }
 
-    private void dfs(TrieNode node, String prefix, PriorityQueue<Entry> pq) {
+    private void dfs(TrieNode node, String prefix, PriorityQueue<Item> pq) {
         if (node.isEndOfWord) {
-            pq.add(new Entry(node.val, prefix));
+            pq.add(new Item(node.val, prefix));
         }
-        for (Map.Entry<Character, TrieNode> entry : node.children.entrySet()) {
-            dfs(entry.getValue(), prefix + entry.getKey(), pq);
+        
+        for (char c : node.children.keySet()) {
+            dfs(node.children.get(c), prefix + c, pq);
         }
     }
 
@@ -95,7 +99,12 @@ public class Quiz4 {
         // Query received: "ab" with limit 1. Showing results:
         System.out.println("Query received: \"" + word + "\" with limit " + limit + ". Showing results:");
 
-        PriorityQueue<Entry> pq = new PriorityQueue<>();
+        if (limit == 0) {
+            System.out.println("No results.");
+            return;   
+        }
+
+        PriorityQueue<Item> pq = new PriorityQueue<>();
         TrieNode current = root;
         for (int i = 0; i < word.length(); i++) {
             char c = word.charAt(i);
@@ -110,7 +119,7 @@ public class Quiz4 {
         // DFS to current node
         dfs(current, word, pq);
 
-        if (pq.isEmpty() || limit == 0) {
+        if (pq.isEmpty()) {
             System.out.println("No results.");
             return;
         }
