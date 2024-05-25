@@ -45,7 +45,11 @@ class Entry implements Comparable<Entry> {
 
     @Override
     public int compareTo(Entry other) {
-        return -Long.compare(priority, other.priority);
+        int res = -Long.compare(priority, other.priority);
+        if (res == 0) {
+            res = name.compareTo(other.name);
+        }
+        return res;
     }
 
     @Override
