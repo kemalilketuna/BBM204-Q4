@@ -6,15 +6,10 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Current File",
-            "request": "launch",
-            "mainClass": "${file}"
-        },
-        {
-            "type": "java",
             "name": "Quiz4",
             "request": "launch",
             "mainClass": "Quiz4",
+            "args": ["sample_io/sample_database.txt", "sample_io/sample_queries.txt"]
         }
     ]
 }
