@@ -2,35 +2,24 @@ import java.io.*;
 import java.util.*;
 
 class TrieNode {
-    Map<Character, TrieNode> children;
+    TrieNode[] children;
     boolean isEndOfWord;
-    char c;
     long val;
 
-    TrieNode(char c) {
-        children = new HashMap<>();
+    TrieNode() {
+        children = new TrieNode[26];  // Assuming only lowercase letters a-z
         isEndOfWord = false;
-        this.c = c;
-        val = 0;
-    }
-
-    TrieNode(){
-        children = new HashMap<>();
-        isEndOfWord = false;
-        c = '\0';
-        val = 0;
     }
 
     public void insert(String word, long val) {
         TrieNode current = this;
         for (int i = 0; i < word.length(); i++) {
             char c = word.charAt(i);
-            TrieNode node = current.children.get(c);
-            if (node == null) {
-                node = new TrieNode(c);
-                current.children.put(c, node);
+            int index = c - 'a';
+            if (current.children[index] == null) {
+                current.children[index] = new TrieNode();
             }
-            current = node;
+            current = current.children[index];
         }
         current.isEndOfWord = true;
         current.val = val;
@@ -48,9 +37,9 @@ class Item implements Comparable<Item> {
 
     @Override
     public int compareTo(Item other) {
-        int res = -Long.compare(priority, other.priority);
+        int res = Long.compare(priority, other.priority);
         if (res == 0) {
-            res = name.compareTo(other.name);
+            res = -name.compareTo(other.name);
         }
         return res;
     }
@@ -68,7 +57,7 @@ public class Quiz4 {
         BufferedReader reader = new BufferedReader(new FileReader(filename));
         String line = reader.readLine();
         int n = Integer.parseInt(line.trim());
-        while (n-- > 0 && (line = reader.readLine()) != null){
+        while (n-- > 0 && (line = reader.readLine()) != null) {
             String[] parts = line.split("\t");
             root.insert(parts[1].toLowerCase(), Long.parseLong(parts[0]));
         }
@@ -85,48 +74,58 @@ public class Quiz4 {
         reader.close();
     }
 
-    private void dfs(TrieNode node, String prefix, PriorityQueue<Item> pq) {
+    private void dfs(TrieNode node, StringBuilder prefix, int limit, PriorityQueue<Item> pq) {
         if (node.isEndOfWord) {
-            pq.add(new Item(node.val, prefix));
+            pq.add(new Item(node.val, prefix.toString()));
+            if (pq.size() > limit) {
+                pq.poll(); // Keep only the top `limit` elements
+            }
         }
         
-        for (char c : node.children.keySet()) {
-            dfs(node.children.get(c), prefix + c, pq);
+        for (int i = 0; i < 26; i++) {
+            if (node.children[i] != null) {
+                prefix.append((char) (i + 'a'));
+                dfs(node.children[i], prefix, limit, pq);
+                prefix.deleteCharAt(prefix.length() - 1);
+            }
         }
     }
 
     private void search(String word, int limit) {
-        // Query received: "ab" with limit 1. Showing results:
         System.out.println("Query received: \"" + word + "\" with limit " + limit + ". Showing results:");
 
         if (limit == 0) {
             System.out.println("No results.");
-            return;   
+            return;
         }
 
         PriorityQueue<Item> pq = new PriorityQueue<>();
         TrieNode current = root;
         for (int i = 0; i < word.length(); i++) {
             char c = word.charAt(i);
-            TrieNode node = current.children.get(c);
-            if (node == null) {
+            int index = c - 'a';
+            if (current.children[index] == null) {
                 System.out.println("No results.");
                 return;
             }
-            current = node;
+            current = current.children[index];
         }
 
-        // DFS to current node
-        dfs(current, word, pq);
+        // Perform DFS to find results
+        dfs(current, new StringBuilder(word), limit, pq);
 
         if (pq.isEmpty()) {
             System.out.println("No results.");
             return;
         }
+        
+        List<Item> results = new ArrayList<>(pq);
+        results.sort(Collections.reverseOrder());  // Highest priorities first
 
         // Print results
-        while ((limit-- > 0) && !pq.isEmpty()) {
-            System.out.println(pq.poll());
+        for (Item item : results) {
+            if (limit-- <= 0) break;
+            System.out.println(item);
         }
     }
 
